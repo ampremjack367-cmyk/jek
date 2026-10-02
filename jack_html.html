@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Jack For You Store</title>
+<style>
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:#050505;color:#fff;font-family:Arial,Helvetica,sans-serif;
+background-image:radial-gradient(rgba(255,255,255,.065) 1px,transparent 1px),radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);
+background-size:17px 17px,29px 29px;background-position:0 0,9px 13px;background-attachment:fixed}
+.page{width:min(920px,100%);margin:auto;padding:15px 10px 70px}
+.header{text-align:center;padding:10px 8px 20px}.logo{font-family:"Brush Script MT","Segoe Script",cursive;font-style:italic;font-size:clamp(48px,10vw,82px);line-height:.9;letter-spacing:-4px}.line{height:5px;background:#fff;border-radius:99px;width:86%;margin:14px auto 10px}.phone{font-size:clamp(21px,4vw,34px);font-weight:800}.tiny{font-size:11px;opacity:.35;letter-spacing:3px;margin-top:5px}
+.list{display:flex;flex-direction:column;gap:30px}
+.card{background:#fff;color:#050505;border-radius:45px;padding:25px 9px 24px;box-shadow:0 16px 45px #0008;overflow:hidden}
+.media{position:relative;width:100%;aspect-ratio:9/16;background:#000;border-radius:34px;overflow:hidden}
+.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;cursor:zoom-in}.placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:clamp(32px,8vw,68px);font-weight:900;text-align:center;padding:30px}.photo .placeholder{display:none}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:9999;display:none;align-items:center;justify-content:center;padding:18px}
+.lightbox.show{display:flex}
+.lightbox img{max-width:96vw;max-height:94vh;width:auto;height:auto;object-fit:contain;border-radius:12px;box-shadow:0 10px 50px #000}
+.closeLightbox{position:fixed;right:18px;top:15px;width:48px;height:48px;border:0;border-radius:50%;background:#fff;color:#000;font-size:28px;font-weight:900;z-index:10000;cursor:pointer}
+
+.specArea{padding:27px 25px 12px;min-height:245px}.stockTag{font-weight:900;font-size:17px}.title{font-size:clamp(28px,6vw,45px);line-height:1;margin:7px 0 13px}.spec{white-space:pre-line;font-size:clamp(16px,3vw,22px);line-height:1.42}
+.orderWrap{text-align:center}.order{border:0;background:#000;color:#fff;border-radius:999px;padding:17px 34px;min-width:220px;font-size:21px;font-weight:900;cursor:pointer}.order:active{transform:scale(.97)}
+.gate,.editor{margin-top:55px;background:#fff;color:#111;border-radius:30px;padding:25px}.editor{display:none}.gate{text-align:center}.gate h2,.editor h2{margin:0 0 6px}.gate p,.editor>p{color:#666;font-size:13px}.row{display:flex;gap:9px;max-width:520px;margin:18px auto 0}.row input{flex:1}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:20px}.full{grid-column:1/-1}
+label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}input,textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:11px;background:#fafafa;font:inherit;color:#111}textarea{min-height:110px;resize:vertical}
+.stockButtons{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.stockBtn{border:1px solid #ccc;background:#f2f2f2;color:#111;border-radius:10px;padding:11px 4px;font-weight:900}.stockBtn.active{background:#000;color:#fff}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.btn{border:0;border-radius:11px;padding:12px 17px;font-weight:900;cursor:pointer}.black{background:#000;color:#fff}.gray{background:#e8e8e8;color:#111}
+.msg{font-size:13px;margin-top:10px;color:#c00;display:none}.saved{background:#eee;padding:10px;border-radius:10px;margin-top:12px;font-size:13px}
+.footer{text-align:center;opacity:.3;font-size:12px;margin-top:25px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.stockButtons{grid-template-columns:repeat(4,1fr)}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="header"><div class="logo" id="brand">Jack For You Store</div><div class="line"></div><div class="phone" id="phone">STOK : 0882007263871</div><div class="tiny">READY STOCK</div></header>
+<section class="list" id="list"></section>
+
+<div class="lightbox" id="lightbox">
+<button class="closeLightbox" id="closeLightbox">×</button>
+<img id="lightboxImg" alt="Preview foto">
+</div>
+
+<div id="cloudStatus" style="margin:12px 0;background:#111;color:#fff;border-radius:16px;padding:12px 14px;text-align:center;font-size:12px">☁️ Menghubungkan cloud...</div>
+<div style="display:flex;gap:8px;margin:8px 0 14px">
+  <button type="button" id="syncNow" style="flex:1;border:0;border-radius:14px;padding:12px;background:#eee;color:#111;font-weight:900">↻ CEK UPDATE TERBARU</button>
+</div>
+
+<section class="gate" id="gate">
+<h2>🔒 ADMIN</h2><p>Masukkan password untuk membuka edit toko.</p>
+<div class="row"><input id="password" type="password" placeholder="Password admin"><button class="btn black" id="login">MASUK</button></div>
+<div class="msg" id="bad">Password salah.</div>
+</section>
+
+<section class="editor" id="editor">
+<h2>⚙️ EDIT TOKO</h2><p>Edit lalu tekan SIMPAN. Tampilan stok di atas akan langsung diperbarui.</p>
+<div class="grid">
+<div><label>Nama toko</label><input id="brandIn"></div>
+<div><label>Nomor WhatsApp</label><input id="phoneIn"></div>
+<div class="full"><label>Pilih stok</label><div class="stockButtons" id="stockButtons"></div></div>
+<div><label>Judul</label><input id="titleIn"></div>
+<div><label>Info / ukuran</label><input id="infoIn"></div>
+<div class="full"><label>Spesifikasi</label><textarea id="specIn"></textarea></div>
+<div><label>Foto stok</label><input id="photoIn" type="file" accept="image/*"></div>
+<div><label>Background tekstur</label><input id="bgIn" type="file" accept="image/*"></div>
+</div>
+<div class="actions"><button class="btn black" id="save">SIMPAN</button>
+<button type="button" id="uploadSync" style="margin-top:8px;width:100%;border:0;border-radius:14px;padding:13px;background:#111;color:#fff;font-weight:900">☁️ UPLOAD & SYNC KE CLOUD</button>
+<button class="btn gray" id="delPhoto">HAPUS FOTO</button><button class="btn gray" id="reset">RESET</button></div>
+<div class="saved" id="saved">Data disimpan lokal dan kompatibel dengan browser/WebView.</div>
+</section>
+<div class="footer">Jack For You Store • 20 STOCK</div>
+</div>
+
+<script>
+(function(){
+
+"use strict";
+
+/* ===== JACK FOR YOU CLOUD SYNC ===== */
+var CLOUD_DB_URL="https://jackforyou-796f9-default-rtdb.asia-southeast1.firebasedatabase.app";
+var CLOUD_PATH="jack_for_you_store";
+var CLOUD_VERSION_PATH="jack_for_you_store_version";
+var CLOUD_SYNC_BUSY=false;
+var CLOUD_LAST="";
+
+function cloudUrl(){
+ return CLOUD_DB_URL.replace(/\/$/,"")+"/"+CLOUD_PATH+".json";
+}
+function cloudVersionUrl(){
+ return CLOUD_DB_URL.replace(/\/$/,"")+"/"+CLOUD_VERSION_PATH+".json";
+}
+async function cloudVersion(){
+ try{
+  var r=await fetch(cloudVersionUrl()+"?t="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  return await r.json();
+ }catch(e){return null}
+}
+async function cloudLoad(){
+ try{
+  var r=await fetch(cloudUrl()+"?t="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  return await r.json();
+ }catch(e){
+  console.warn("Cloud load failed:",e);
+  return null;
+ }
+}
+async function cloudSave(){
+ CLOUD_SYNC_BUSY=true;
+ try{
+  var r=await fetch(cloudUrl(),{
+   method:"PUT",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify(data)
+  });
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  var v=Date.now();
+  var vr=await fetch(cloudVersionUrl(),{
+   method:"PUT",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify(v)
+  });
+  if(!vr.ok)throw new Error("VERSION HTTP "+vr.status);
+  CLOUD_LAST=JSON.stringify(data);
+  return true;
+ }catch(e){
+  console.warn("Cloud save failed:",e);
+  return false;
+ }finally{
+  CLOUD_SYNC_BUSY=false;
+ }
+}
+async function cloudBoot(){
+ var remote=await cloudLoad();
+ if(remote && remote.items){
+  var base=defaults();
+  base.brand=remote.brand||base.brand;
+  base.phone=remote.phone||base.phone;
+  base.bg=remote.bg||"";
+  for(var i=0;i<20;i++){
+   if(remote.items[i])for(var k in remote.items[i])base.items[i][k]=remote.items[i][k];
+  }
+  data=base;
+  try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
+  CLOUD_LAST=JSON.stringify(data);
+  window.CLOUD_LOCAL_VERSION=await cloudVersion();
+  render();
+  fill();
+ }else{
+  // Database is empty: publish the existing local data once.
+  await cloudSave();
+ }
+ updateCloudStatus("☁️ CLOUD AKTIF • sync manual");
+}
+async function cloudPoll(){
+ if(CLOUD_SYNC_BUSY)return;
+ var remoteVersion=await cloudVersion();
+ if(remoteVersion===null)return;
+ if(String(remoteVersion)===String(window.CLOUD_LOCAL_VERSION||""))return;
+ var remote=await cloudLoad();
+ if(!remote || !remote.items)return;
+ window.CLOUD_LOCAL_VERSION=remoteVersion;
+ CLOUD_LAST=JSON.stringify(remote);
+ var base=defaults();
+ base.brand=remote.brand||base.brand;
+ base.phone=remote.phone||base.phone;
+ base.bg=remote.bg||"";
+ for(var i=0;i<20;i++){
+  if(remote.items[i])for(var k in remote.items[i])base.items[i][k]=remote.items[i][k];
+ }
+ data=base;
+ try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
+ render();
+ fill();
+ updateCloudStatus("☁️ CLOUD UPDATE • data terbaru masuk");
+}
+
+async function manualCloudSync(){
+ var b=document.getElementById("syncNow");
+ if(b){b.disabled=true;b.textContent="↻ MENGAMBIL UPDATE...";}
+ var remote=await cloudLoad();
+ if(remote && remote.items){
+  var incoming=JSON.stringify(remote);
+  if(incoming!==CLOUD_LAST){
+   CLOUD_LAST=incoming;
+   var base=defaults();
+   base.brand=remote.brand||base.brand;
+   base.phone=remote.phone||base.phone;
+   base.bg=remote.bg||"";
+   for(var i=0;i<20;i++){
+    if(remote.items[i])for(var k in remote.items[i])base.items[i][k]=remote.items[i][k];
+   }
+   data=base;
+   try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
+   render();
+   fill();
+   updateCloudStatus("☁️ UPDATE MASUK • data terbaru");
+  }else{
+   updateCloudStatus("☁️ SUDAH TERBARU");
+  }
+ }
+ if(b){b.disabled=false;b.textContent="↻ CEK UPDATE TERBARU";}
+}
+function updateCloudStatus(msg){
+ var x=document.getElementById("cloudStatus");
+ if(x)x.textContent=msg;
+}
+
+var PASSWORD="jackadmin", KEY="JFY_STORE_WEBVIEW_1", selected=0;
+function defaults(){
+ var a=[];for(var i=1;i<=20;i++)a.push({title:"STOK #"+i,info:"SPESIFIKASI",spec:"Isi spesifikasi produk di sini\\n\\n• Bahan : -\\n• Kondisi : -\\n• Detail : -",photo:""});
+ return {brand:"Jack For You Store",phone:"0882007263871",bg:"",items:a};
+}
+function read(){
+ var d=null;
+ try{d=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+ if(!d)try{d=JSON.parse(localStorage.getItem("jfy-v3")||localStorage.getItem("jfy-v2")||"null")}catch(e){}
+ if(!d)return defaults();
+ var b=defaults();b.brand=d.brand||b.brand;b.phone=d.phone||b.phone;b.bg=d.bg||"";
+ for(var i=0;i<20;i++)if(d.items&&d.items[i])for(var k in d.items[i])b.items[i][k]=d.items[i][k];
+ return b;
+}
+var data=read();
+function el(id){return document.getElementById(id)}
+function saveData(){
+ try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
+ cloudSave().then(function(ok){
+  updateCloudStatus(ok?"☁️ TERSIMPAN • semua HP akan ikut update":"⚠️ Cloud gagal • perubahan masih tersimpan di HP ini");
+ });
+ return true;
+}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]})}
+function phone(){var n=(data.phone||"").replace(/\D/g,"");if(n.indexOf("0")===0)n="62"+n.slice(1);return n}
+
+function render(){
+ el("brand").textContent=data.brand;el("phone").textContent="STOK : "+data.phone;
+ if(data.bg)document.body.style.backgroundImage='url("'+data.bg+'"),radial-gradient(rgba(255,255,255,.065) 1px,transparent 1px),radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px)';
+ var list=el("list");list.innerHTML="";
+ for(var i=0;i<20;i++){
+  var x=data.items[i],c=document.createElement("article");c.className="card";
+  c.innerHTML='<div class="media '+(x.photo?"photo":"")+'">'+(x.photo?'<img src="'+x.photo+'">':'')+'<div class="placeholder">'+esc(x.title)+'</div></div>'+
+  '<div class="specArea"><div class="stockTag">STOK #'+(i+1)+'</div><h2 class="title">'+esc(x.title)+'</h2><div class="spec">'+esc(x.info)+'\n'+esc(x.spec)+'</div></div>'+
+  '<div class="orderWrap"><button class="order" data-i="'+i+'">ORDER NOW</button></div>';
+  list.appendChild(c);
+ }
+ var imgs=document.querySelectorAll(".media img");
+ for(var q=0;q<imgs.length;q++)imgs[q].onclick=function(e){
+  e.stopPropagation();
+  el("lightboxImg").src=this.src;
+  el("lightbox").classList.add("show");
+ };
+ var bs=document.querySelectorAll(".order");
+ for(var j=0;j<bs.length;j++)bs[j].onclick=function(){
+  var n=Number(this.getAttribute("data-i"))+1;
+  window.open("https://wa.me/"+phone()+"?text="+encodeURIComponent("bang mau beli stok#"+n),"_blank");
+ };
+}
+
+function selectStock(i){
+ selected=i;var x=data.items[i];
+ el("titleIn").value=x.title;el("infoIn").value=x.info;el("specIn").value=x.spec;
+ var bs=document.querySelectorAll(".stockBtn");for(var j=0;j<bs.length;j++)bs[j].classList.toggle("active",Number(bs[j].getAttribute("data-i"))===i);
+}
+function buildButtons(){
+ var box=el("stockButtons");box.innerHTML="";
+ for(var i=0;i<20;i++){var b=document.createElement("button");b.type="button";b.className="stockBtn";b.textContent="STOK #"+(i+1);b.setAttribute("data-i",i);b.onclick=function(){selectStock(Number(this.getAttribute("data-i")))};box.appendChild(b)}
+}
+function fill(){el("brandIn").value=data.brand;el("phoneIn").value=data.phone;selectStock(selected)}
+
+el("login").onclick=function(){if(el("password").value!==PASSWORD){el("bad").style.display="block";return}el("bad").style.display="none";el("gate").style.display="none";el("editor").style.display="block";fill()};
+el("password").onkeydown=function(e){if(e.key==="Enter")el("login").click()};
+
+el("save").onclick=function(){
+ var x=data.items[selected];
+ data.brand=el("brandIn").value.trim()||"Jack For You Store";
+ data.phone=el("phoneIn").value.trim()||"0882007263871";
+ x.title=el("titleIn").value.trim()||"STOK #"+(selected+1);
+ x.info=el("infoIn").value.trim();
+ x.spec=el("specIn").value;
+ saveData();
+ render();
+ fill();
+ el("saved").textContent="✓ STOK #"+(selected+1)+" berhasil disimpan • tampilan atas berubah • sinkron ke cloud...";
+};
+
+el("photoIn").onchange=function(e){
+ var f=e.target.files[0];if(!f)return;
+ var r=new FileReader();r.onload=function(){data.items[selected].photo=r.result;saveData();render();selectStock(selected);e.target.value=""};r.readAsDataURL(f);
+};
+el("bgIn").onchange=function(e){
+ var f=e.target.files[0];if(!f)return;
+ var r=new FileReader();r.onload=function(){data.bg=r.result;saveData();render();e.target.value=""};r.readAsDataURL(f);
+};
+el("delPhoto").onclick=function(){data.items[selected].photo="";saveData();render();selectStock(selected)};
+el("reset").onclick=function(){if(confirm("Reset semua stok?")){data=defaults();selected=0;saveData();render();fill()}};
+
+el("closeLightbox").onclick=function(){el("lightbox").classList.remove("show");el("lightboxImg").src=""};
+el("lightbox").onclick=function(e){if(e.target===this){this.classList.remove("show");el("lightboxImg").src=""}};
+document.addEventListener("keydown",function(e){if(e.key==="Escape")el("lightbox").classList.remove("show")});
+
+buildButtons();render();
+setTimeout(function(){
+ cloudBoot();
+},250);
+})();
+
+document.addEventListener("DOMContentLoaded",function(){
+ var sb=document.getElementById("syncNow");
+ if(sb)sb.onclick=manualCloudSync;
+});
+
+document.addEventListener("DOMContentLoaded",function(){
+ var ub=document.getElementById("uploadSync");
+ if(ub)ub.onclick=async function(){
+  ub.disabled=true;
+  ub.textContent="☁️ MENGUPLOAD...";
+  saveData();
+  var ok=await cloudSave();
+  ub.disabled=false;
+  ub.textContent="☁️ UPLOAD & SYNC KE CLOUD";
+  updateCloudStatus(ok?"☁️ UPLOAD BERHASIL • HP lain tinggal CEK UPDATE / reload":"⚠️ Upload gagal");
+ };
+});
+</script>
+</body>
+</html>
